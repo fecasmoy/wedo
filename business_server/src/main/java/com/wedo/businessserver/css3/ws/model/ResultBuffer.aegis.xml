@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings>
+	<mapping>
+		<property name="folderuuids" componentType="java.lang.String"
+			keyType="java.lang.String" />
+		<property name="fileBuffers" componentType="com.huaweisymantec.css3.ws.model.FileBuffer"
+			keyType="java.lang.String" />
+	</mapping>
+</mappings>

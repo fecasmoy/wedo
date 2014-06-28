@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+    <!-- 临时文件删除 -->
+	<bean id="tempFileJob"
+		class="com.huaweisymantec.attemper.job.TempFileDoJobImpl">
+	</bean>	
+	
+	<!-- 系统状态维护 -->
+	<bean id="systemStateJob"
+		class="com.huaweisymantec.attemper.job.SystemStateDoJobImpl">
+	</bean>	
+	
+	<!-- 全量索引维护 -->
+	<bean id="searchEngineCreateIndexJob"
+		class="com.huaweisymantec.attemper.job.SearchEngineCreateIndexJobImpl">
+	</bean>
+
+	<!-- 合并索引维护 -->
+	<bean id="incorporateIndexJob"
+		class="com.huaweisymantec.attemper.job.IncorporateIndexJobImpl">
+	</bean>
+
+	<!-- 删除临时文件 -->
+	<bean id="tempFiledoJob"
+		class="frameworkx.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="tempFileJob" />
+		</property>
+		<property name="targetMethod">
+			<value>scanTempFiles</value>
+		</property>
+		<property name="shouldRecover" value="true"/> 
+	</bean>
+	
+	<bean id="systemStateDoJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="systemStateJob" />
+		</property>
+		<property name="targetMethod">
+			<value>systemState</value>
+		</property>
+	</bean>
+	
+	<bean id="searchEngineCreateIndexDoJob"
+		class="frameworkx.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="searchEngineCreateIndexJob" />
+		</property>
+		<property name="targetMethod">
+			<value>createIndex</value>
+		</property>
+		<property name="shouldRecover" value="true"/> 
+	</bean>
+	<bean id="incorporateIndexDoJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<ref bean="incorporateIndexJob" />
+		</property>
+		<property name="targetMethod">
+			<value>incorporateIndex</value>
+		</property>
+	</bean>
+	<bean id="tempjobTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="tempFiledoJob" />
+		</property>
+		<property name="cronExpression">
+			<!-- s m h d m w(?) y(?) -->
+			<value>0 59 23 * * ?</value>
+		</property>
+	</bean>
+
+
+	<bean id="systemjobTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="systemStateDoJob" />
+		</property>
+		<property name="cronExpression">
+			<!-- s m h d m w(?) y(?) -->
+			<value>0 0/1 * * * ?</value>
+		</property>
+	</bean>
+	
+	<bean id="searchEngineCreateIndexjobTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="searchEngineCreateIndexDoJob" />
+		</property>
+		<property name="cronExpression">
+			<!-- s m h d m w(?) y(?) -->
+			<value>0 1 0 * * ?</value>
+		</property>
+	</bean>
+	
+	<bean id="incorporateIndexJobTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail">
+			<ref bean="incorporateIndexDoJob" />
+		</property>
+		<property name="cronExpression">
+			<!-- s m h d m w(?) y(?) -->
+			<value>0 0/50 * * * ?</value>
+		</property>
+	</bean>
+
+	<bean id="doScheduler"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref local="systemjobTrigger" />
+				<ref local="incorporateIndexJobTrigger"/>
+			</list>
+		</property>
+		<property name="quartzProperties">
+			<props>
+				<prop key="org.quartz.jobStore.class">
+					org.quartz.simpl.RAMJobStore
+				</prop>
+			</props>
+	   </property> 
+	</bean>
+	
+	<bean name="quartzScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="dataSource">
+            <ref bean="dataSource"/>
+        </property>
+        <property name="applicationContextSchedulerContextKey" value="applicationContextKey"/>
+        <property name="configLocation" value="classpath:quartz.properties"/>
+		<property name="triggers">
+			<list>  
+				<ref local="tempjobTrigger" />
+				<ref bean="searchEngineCreateIndexjobTrigger"/>
+			</list>
+		</property>
+    </bean> 
+
+</beans>
