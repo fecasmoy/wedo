@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans default-autowire="byName"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<!-- <bean id="component" class="org.restlet.ext.spring.SpringComponent"> 
+		<property name="defaultTarget" ref="restRoute" /> </bean> -->
+
+	<!-- <bean id="restRoute" class="org.restlet.ext.spring.SpringRouter"> <property 
+		name="attachments"> <map> <entry key="/customers/{custId}"> <bean class="org.restlet.ext.spring.SpringFinder"> 
+		<lookup-method name="createResource" bean="customerResource" /> </bean> </entry> 
+		</map> </property> </bean> -->
+
+	<!-- digest鉴权用 -->
+	<bean id="component" class="org.restlet.ext.spring.SpringComponent">
+		<property name="defaultTarget" ref="guard" />
+	</bean>
+
+	<bean id="guard"
+		class="org.fecasmoy.restfultest.eyedemo.filter.CustomerGuardFilter">
+		<property name="next" ref="restRoute" />
+		<property name="secretResolver" ref="customerResolver" />
+	</bean>
+
+	<bean id="customerResolver"
+		class="org.fecasmoy.restfultest.eyedemo.filter.CustomerResolver" />
+	<!-- digest鉴权用 -->
+
+	<bean id="restRoute" class="org.restlet.ext.spring.SpringRouter">
+		<property name="attachments">
+			<map>
+				<entry key="/customer" value-ref="customerRoute" />
+
+				<!-- <entry key="/customers" value-ref="customersRoute" /> -->
+				<entry key="/customers">
+					<bean class="org.restlet.ext.spring.SpringFinder">
+						<lookup-method name="createResource" bean="customersResource" />
+					</bean>
+				</entry>
+
+			</map>
+		</property>
+	</bean>
+
+	<bean id="customerRoute" class="org.restlet.ext.spring.SpringRouter">
+		<property name="attachments">
+			<map>
+				<entry key="/{customerId}">
+					<bean class="org.restlet.ext.spring.SpringFinder">
+						<lookup-method name="createResource" bean="customerResource" />
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<!-- <bean id="customersRoute" class="org.restlet.ext.spring.SpringRouter"> 
+		<property name="attachments"> <map> <entry key=""> <bean class="org.restlet.ext.spring.SpringFinder"> 
+		<lookup-method name="createResource" bean="customersResource" /> </bean> 
+		</entry> </map> </property> </bean> -->
+	<!-- <bean id="restRoute" class="org.restlet.ext.spring.SpringRouter"> <property 
+		name="attachments"> <map> <entry key="/customers"> <bean class="org.restlet.ext.spring.SpringFinder"> 
+		<lookup-method name="createResource" bean="customersResource" /> </bean> 
+		</entry> <entry key="/customers/{customerId}"> <bean class="org.restlet.ext.spring.SpringFinder"> 
+		<lookup-method name="createResource" bean="customerResource" /> </bean> </entry> 
+		</map> </property> </bean> -->
+
+	<bean id="customerResource"
+		class="org.fecasmoy.restfultest.eyedemo.resource.CustomerResource"
+		scope="prototype">
+		<property name="customerDAO" ref="customerDAO" />
+	</bean>
+
+	<bean id="customersResource"
+		class="org.fecasmoy.restfultest.eyedemo.resource.CustomersResource"
+		scope="prototype">
+		<property name="customerDAO" ref="customerDAO" />
+	</bean>
+
+	<bean id="customerDAO" class="org.fecasmoy.restfultest.eyedemo.dao.CustomerDAOImpl" />
+
+</beans>

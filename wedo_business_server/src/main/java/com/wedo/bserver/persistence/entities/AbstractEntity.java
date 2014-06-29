@@ -1,11 +1,11 @@
-package com.wedo.businessserver.common.domain;
+package com.wedo.bserver.persistence.entities;
 
 import java.io.Serializable;
 
 /**
  * 域对象抽象类
  * 
- * @author zhe.chen
+ * @author isaac
  */
 public abstract class AbstractEntity implements Serializable {
 
